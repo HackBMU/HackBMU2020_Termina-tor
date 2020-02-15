@@ -80,6 +80,7 @@ public class PoiBrowserActivity extends FragmentActivity implements GoogleApiCli
 
     private final static String TAG="PoiBrowserActivity";
 
+
     private TextView textView;
     private Location mLastLocation;
     private GoogleApiClient mGoogleApiClient;

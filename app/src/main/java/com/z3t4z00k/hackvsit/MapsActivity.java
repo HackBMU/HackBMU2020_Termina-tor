@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.material.snackbar.Snackbar;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -47,6 +48,7 @@ import com.z3t4z00k.hackvsit.utils.UtilsCheck;
 import com.z3t4z00k.hackvsit.utils.PermissionCheck;
 import com.zook.ar.UnityPlayerActivity;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,8 +67,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ,ConnectionCallbacks,GoogleMap.OnMapLongClickListener,GoogleMap.OnMapClickListener {
 
     private final static String TAG = "MapsActivity";
+    double currentlat;
+    double currentlong;
+    double deslat;
+    double deslong;
+
 
     SharedPreferences getPrefs;
+    private android.location.Location mLastLocation;
     boolean isFirstStart;
     RecyclerView recyclerView;
     private GoogleApiClient googleApiClient;
@@ -74,6 +82,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GridLayoutManager gridLayoutManager;
     private placesadapter adapter;
     private List<adapterplace> listurl;
+
+    private GoogleApiClient mGoogleApiClient;
 
     private Location location;
     ImageView scanimage;
@@ -99,6 +109,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         ButterKnife.bind(this);
+        if (googleApiClient == null) {
+
+           googleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
 
         Init_intro();
         PermissionCheck.initialPermissionCheckAll(this,this);
@@ -489,6 +507,52 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         //PermissionCheck.initialPermissionCheck(this,this);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+
+        }
+        else {
+
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                    googleApiClient);
+
+            if (mLastLocation != null) {
+                try {
+                    Toast.makeText(this, Double.toString(mLastLocation.getLatitude())+"/"+Double.toString(mLastLocation.getLongitude()), Toast.LENGTH_SHORT).show();
+                    currentlat=mLastLocation.getLatitude();
+                    currentlong=mLastLocation.getLongitude();
+                    try{
+                        mMap.clear();
+                        LatLng loc = new LatLng(currentlat,currentlong);
+                        mMap.addMarker(new MarkerOptions()
+                                .position(loc)
+                                .title("Your Location")
+                                .snippet(""));
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc,14.0f));
+                        mMap.getUiSettings().setMapToolbarEnabled(false);
+                        //decode_button.setBackground(getDrawable());
+
+//                    mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+//                        @Override
+//                        public boolean onMarkerClick(Marker marker) {
+//                            if(marker.isInfoWindowShown())
+//                                fab_menu.hideMenu(true);
+//                            else
+//                                fab_menu.hideMenu(false);
+//                            return false;
+//                        }
+//                    });
+                    }catch (NullPointerException npe){
+                        Log.d(TAG, "onMapReady: Location is NULL");
+                    }
+
+                }catch (Exception e){
+                    Log.d(TAG, "onCreate: Intent Error");
+                }
+            }
+        }
 
     }
 
