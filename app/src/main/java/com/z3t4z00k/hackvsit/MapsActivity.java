@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,6 +13,9 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,6 +24,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionMenu;
@@ -44,11 +49,18 @@ import com.z3t4z00k.hackvsit.utils.UtilsCheck;
 import com.z3t4z00k.hackvsit.utils.PermissionCheck;
 import com.zook.ar.UnityPlayerActivity;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -64,9 +76,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     SharedPreferences getPrefs;
     boolean isFirstStart;
-
+    RecyclerView recyclerView;
     private GoogleApiClient googleApiClient;
     private GoogleMap mMap;
+    private GridLayoutManager gridLayoutManager;
+    private placesadapter adapter;
+    private List<adapterplace> listurl;
 
     private Location location;
     ImageView scanimage;
@@ -97,6 +112,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         PermissionCheck.initialPermissionCheckAll(this,this);
         armap=findViewById(R.id.openar);
         scanimage=findViewById(R.id.scanimage);
+        recyclerView=findViewById(R.id.place);
+        recyclerView.setHasFixedSize(true);
+        new parseurl().execute();
+        listurl=new ArrayList<>();
+        gridLayoutManager=new GridLayoutManager(this,GridLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(gridLayoutManager);
+        adapter=new placesadapter(this,listurl);
+        recyclerView.setAdapter(adapter);
+
         scanimage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -290,6 +314,70 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(MapsActivity.this, "Invalid Request", Toast.LENGTH_SHORT).show();
             }
         });
+
+        private  class parseurl extends AsyncTask<String,Void,String>
+        {
+
+
+            @Override
+            protected String doInBackground(String... strings) {
+                OkHttpClient client =new OkHttpClient();
+                Request request =new Request.Builder().url("https://frozen-oasis-52735.herokuapp.com/post").build();
+                try {
+                    okhttp3.Response response=client.newCall(request).execute();
+                    JSONArray array= null;
+                    try {
+                        array = new JSONArray(response.body().string());
+                    } catch (JSONException e) {
+
+                    }
+                    if(array.length()>0) {
+                        for (int i = 0; i < array.length(); i++) {
+
+                            JSONObject array1 = null;
+                            JSONArray array2 = null;
+                            JSONObject urlfinal = null;
+                            try {
+
+
+                                array1 = array.getJSONObject(i);
+                                array2 = array1.getJSONArray("urls");
+                                urlfinal = array2.getJSONObject(0);
+
+
+                                bookmarkedUrl response1 = null;
+
+                                response1 = new bookmarkedUrl(array1.getString("folder_name"), urlfinal.getString("url"));
+                                listurl.add(response1);
+
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+
+                        }
+                    }
+                    else {
+                        Toast.makeText(getApplicationContext(),"NO DATA AVAILABLE",Toast.LENGTH_SHORT).show();
+                        notavailable=(TextView)findViewById(R.id.notavailable);
+                        notavailable.setVisibility(View.VISIBLE);
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+
+
+            @Override
+            protected void onPostExecute(String s) {
+                adapter.notifyDataSetChanged();
+                progressBar.setVisibility(View.GONE);
+
+            }}
 
     }
 
@@ -496,4 +584,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Intent intent = getPackageManager().getLaunchIntentForPackage("com.z3t4z00k.v360");
         startActivity(intent);
     }
+
+
 }
