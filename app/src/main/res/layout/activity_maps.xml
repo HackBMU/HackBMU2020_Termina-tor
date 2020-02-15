@@ -76,14 +76,14 @@
 
     </androidx.cardview.widget.CardView>
 <Button
-    android:visibility="gone"
+    android:visibility="visible"
     android:id="@+id/openar"
     android:text="Open Map in AR"
     android:layout_gravity="bottom|center"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"/>
     <ImageView
-        android:visibility="gone"
+        android:visibility="visible"
         android:id="@+id/v360"
         android:layout_width="60sp"
         android:layout_height="60sp"
@@ -104,7 +104,7 @@
         android:layout_marginBottom="90dp"
         android:onClick="indoorNav"/>
     <ImageView
-        android:visibility="gone"
+
         android:id="@+id/scanimage"
         android:layout_width="60sp"
         android:layout_height="60sp"
@@ -164,6 +164,7 @@
 
     </com.github.clans.fab.FloatingActionMenu>
     <Button
+        android:visibility="gone"
         android:layout_gravity="bottom|center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -175,6 +176,7 @@
         android:layout_marginBottom="30dp"
         >
         <androidx.recyclerview.widget.RecyclerView
+            android:visibility="gone"
             android:layout_gravity="bottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

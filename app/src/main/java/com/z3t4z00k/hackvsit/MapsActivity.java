@@ -106,7 +106,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         scanimage=findViewById(R.id.scanimage);
         recyclerView=findViewById(R.id.place);
         recyclerView.setHasFixedSize(true);
-       
+
         listurl=new ArrayList<>();
         gridLayoutManager=new GridLayoutManager(this,GridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(gridLayoutManager);
