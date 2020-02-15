@@ -71,7 +71,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     double currentlong;
     double deslat;
     double deslong;
-
+    ImageView navigate;
 
     SharedPreferences getPrefs;
     private android.location.Location mLastLocation;
@@ -136,6 +136,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 Intent study = new Intent(MapsActivity.this, UnityPlayerActivity.class);
                 startActivity(study);
+            }
+        });
+        navigate=findViewById(R.id.navigation);
+        navigate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(MapsActivity.this,ArCamActivity.class);
+
+                try {
+                    intent.putExtra("SRC", "Current Location");
+                    intent.putExtra("DEST",  deslat+","+
+                           deslong);
+                    intent.putExtra("SRCLATLNG",  currentlat+","+currentlong);
+                    intent.putExtra("DESTLATLNG", deslat+","+
+                            deslong);
+                    startActivity(intent);
+                    finish();
+                }catch (NullPointerException npe){
+                    Log.d(TAG, "onClick: The IntentExtras are Empty");
+                }
             }
         });
         armap.setOnClickListener(new View.OnClickListener() {
@@ -248,6 +268,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 try{
                     mMap.clear();
+                    deslat=location.getLat();
+                    deslong=location.getLng();
                     LatLng loc = new LatLng(location.getLat(),location.getLng());
                     mMap.addMarker(new MarkerOptions()
                             .position(loc)
